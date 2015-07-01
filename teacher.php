@@ -20,8 +20,17 @@ and open the template in the editor.
         </style>
     </head>
     <body>
+        <?php 
+            if (isset($_SERVER['HTTP_REFERER'])){
+                $callback = $_SERVER['HTTP_REFERER'];
+                echo $callback;
+            }
+        ?>
 
-        <?php include './nav.html'; ?>
+        <?php 
+            include './nav.html';
+            include './week.php';
+        ?>
         
         
         <div class="teable">

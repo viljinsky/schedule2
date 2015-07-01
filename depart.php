@@ -16,8 +16,22 @@
     </style>
     </head>
     <body>
+        
+        <?php 
+            if (isset($_SERVER['HTTP_REFERER'])){
+                $callback = $_SERVER['HTTP_REFERER'];
+                echo $callback;
+            }
+            if (isset($_SERVER['QUERY_STRING'])){
+                echo '?'.$_SERVER['QUERY_STRING'];
+                
+            }
+        ?>
+        
       
-        <?php include './nav.html'; 
+        <?php 
+            include './nav.html'; 
+            include './week.php';
         ?>
         
         
