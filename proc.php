@@ -2,6 +2,24 @@
     $db = new SQLite3("../example.db");
     date_default_timezone_set('Europe/Moscow');
     
+    function scheduleAttr(){
+        global $db;
+        $data = $db->query('select * from attr');
+        $result = array();
+        while ($row=$data->fetchArray()){
+            $param_name=$row['param_name'];
+            $param_value=$row['param_value'];
+            $result[$param_name]=$param_value;
+//            echo $param_name.' '.$param_value.'<br>';
+            
+        }
+        echo '<h1>'.$result['schedule_span'].'</h1>';
+        echo '<h2>'.$result['schedule_title'].'</h2>';
+        echo '<h2>'.$result['educational_institution'].'</h2>';
+        
+        return $result;
+    }
+    
     /*
      * Список преподавателей
      */
@@ -55,17 +73,15 @@
     function getDepartList(){
         global $db;
         $result = '';
+        $cr="\n\r";
         $curriculumList = $db->query("select * from curriculum");
         while ($curriculum=$curriculumList->fetchArray()){
-            $result.= $curriculum['caption']."<br>";
+            $result.= $curriculum['caption']."<br>".$cr;
 
             $departList = $db->query("select * from v_depart where curriculum_id=".$curriculum['id']." order by curriculum_id,skill_id ");
             while ($depart=$departList->fetchArray()){
-                $result.="<a href='/schedule2/depart.php/?depart_id="
-                        .$depart['depart_id']
-                        ."'>"
-                        .$depart['depart_label']
-                        ."</a><br>";
+                $result.="<a href='./depart.php?depart_id=".$depart['depart_id']."'>"
+                        .$depart['depart_label']."</a><br>".$cr;
             }
         }
         return $result;
@@ -94,33 +110,30 @@
         $result = '';
         $dayList = $db->query($queryDayList.$depart_id);
         $bellList = $db->query($queryBellList.$depart_id);
-        
+        $cr = "\n\r";
         while ($day=$dayList->fetchArray()){
             date_add($data, $interval);
             $sdata = date_format($data, 'd M');
             
-            $result .='<table border="1px" width="300px">';
+            $result .='<table border="1px" width="300px">'.$cr;
             
-            $result .='<tr><th colspan="4" align="left">'.$day['day_caption'].' '.$sdata.'</th></tr>';
+            $result .="<tr>".$cr."<th colspan='4' align='left'>".$day['day_caption'].' '.$sdata."</th>".$cr."</tr>".$cr;
             $day_id = $day['day_no'];
             while ($bell=$bellList->fetchArray()){
-                echo '<tr>';
+                $result.= '<tr>'.$cr;
                     $result .='<td>'.$bell['time_start']."</td>";
                     $bell_id=$bell['bell_id'];
 
                     $q = $db->query("select * from v_schedule where depart_id=".$depart_id." and day_id=".$day_id." and bell_id=".$bell_id);
                     $r = $q->fetchArray();
                     if (empty($r)){
-                        $result .='<td>&nbsp;</td><td>&nbsp;</td><td></td></tr>';
+                        $result .="<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>\n\r</tr>".$cr;
                     } else {
                         $subject_name = $r['subject_name'];
-                        $result .='<td>'
-                                .$subject_name
-                                .'</td><td>'
-                                .$r['group_label']
-                                .'</td><td>'
-                                .$r['room'].'<br>'.$r['teacher']
-                                .'</td></tr>';
+                        $result .='<td>'.$subject_name.'</td>'
+                                . '<td>'.$r['group_label'].'</td>'
+                                . '<td>'.$r['room'].'<br>'.$r['teacher']."</td>".$cr
+                                . "</tr>".$cr;
                         while ($r=$q->fetchArray()){
                             if ($r['subject_name']==$subject_name){
                                 $s="&nbsp;";
@@ -128,18 +141,16 @@
                                 $s=$subject_name;
                             }
                             $subject_name=$r['subject_name'];
-                            $result .='<tr><td>&nbsp</td><td>'
-                                    .$s
-                                    .'</td><td>'
-                                    .$r['group_label']
-                                    .'</td><td>'
-                                    .$r['room'].'<br>'.$r['teacher']
-                                    .'</td></tr>';
+                            $result .='<tr>'
+                                    . '<td>&nbsp</td>'
+                                    . '<td>'.$s.'</td>'
+                                    . '<td>'.$r['group_label'].'</td>'
+                                    . '<td>'.$r['room'].'<br>'.$r['teacher']."</td>".$cr
+                                    . "</tr>".$cr;
                         }
                     }
                 }
-                $result .='</table>';
-                
+                $result .="</table>".$cr;                
             }
         return $result;
 

@@ -2,42 +2,40 @@
 <html lang="ru">
     <head>
         <meta charset="UTF-8">
-        
+        <title>Расписание 2</title>
     </head>
     <body>
-        
-        <?php 
-            if (isset($_SERVER['HTTP_REFERER'])){
-                $callback = $_SERVER['HTTP_REFERER'];
-                echo $callback;
-            }
-        ?>
-
-        
-        <?php include './nav.html'; ?>
-        <?php include './week.php' ;?>
+        <?php include_once './proc.php';
+            include './nav.html'; 
+            scheduleAttr();
+            include './week.php'; 
+         ?>
         
         <h1>Пример распсания</h1>
         
         
         
         <?php
-        date_default_timezone_set('Europe/Moscow');
-        
-        
-        $d1 = new DateTime();
-        date_sub($d1, new DateInterval('P3D'));
-        for ($k=0;$k<7;$k++){
-            echo print_r($d1).' '.$d1->format("Y M D w").'<br>';
-            date_add($d1,new DateInterval('P1D'));
-        }
-        
-        
+            date_default_timezone_set('Europe/Moscow');
+            $d1 = new DateTime();
+            date_sub($d1, new DateInterval('P3D'));
+            for ($k=0;$k<7;$k++){
+                echo print_r($d1).' '.$d1->format("Y M D w").'<br>';
+                date_add($d1,new DateInterval('P1D'));
+            }
         ?>        
         
         <h1>Расчёт дня</h2>
 
         <?php
+        
+        $a = getSchedulePeriod(2015, 27);
+        echo '<p>';
+        print_r($a['date_begin']);
+        echo '<br>';
+        print_r($a['date_end']);
+        echo '</p>';
+        
         $now = date_create('2015-07-01');
         $w = $now->format('w');
         $days = array(

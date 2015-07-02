@@ -1,0 +1,4 @@
+ table {background: #fff;border-collapse: collapse; border-color: lightgrey;}
+ th {background: lightslategrey;color:white}
+ .leftside {float: left;width:20%;background: #ddd;min-height: 300px;}
+ .rightside {margin-left: 21%;background: #ddd;min-height: 300px;}
