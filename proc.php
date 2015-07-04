@@ -13,9 +13,12 @@
 //            echo $param_name.' '.$param_value.'<br>';
             
         }
+        $date_begin = date_create($result['date_begin']);
+        $date_end =  date_create($result['date_end']);
+        echo '<h2>'.$result['educational_institution'].'</h2>';
         echo '<h1>'.$result['schedule_span'].'</h1>';
         echo '<h2>'.$result['schedule_title'].'</h2>';
-        echo '<h2>'.$result['educational_institution'].'</h2>';
+        echo '<b> c '.date_format($date_begin, 'd M').' по '.  date_format($date_end,'d M Y г.').'</b>';
         
         return $result;
     }
@@ -36,21 +39,36 @@
     /*
      * Расписание преподавателя
      */
+    
+    
     function getTeacherSchedule($teacher_id,$data=NULL){
         global $db;
         
         if (empty($data)){
-            $data = date_create();
+            $data = date_create("2015-1-1");
         }
         
         $result="";
         $dayList = $db->query("select * from day_list where (select count(*) from schedule where day_id=day_list.day_no and teacher_id=".$teacher_id.")>0");
 
+        
+        $result.='<div>';
+        $result.='<nav>'
+                . '<a href="week.php?week=prior">Prior</a>'
+                . '<a href="week.php?week=current">Current</a>'
+                . '<a href="week.php?week=next">Next</a>'
+                . '</nav>';
+        
         while ($day=$dayList->fetchArray()){
             $day_id = $day['day_no'];
             $schedule = $db->query("select * from v_schedule where day_id=".$day_id." and teacher_id=".$teacher_id);
-            $result.= '<table border="1px">';
-            $result.= '<tr><th colspan="4">'.$day['day_caption']." ". date_format($data, 'Y m d')."</th></tr>";
+            
+            $result.= '<table border="1px" width="100%">';
+            
+            $d = date_create(date_format($data,'Y-m-d'));
+            date_add($d,new DateInterval("P".($day_id-1)."D"));
+            
+            $result.= '<tr><th colspan="4">'.date_format($d, 'l (d M Y)')."</th></tr>";
             
             while ($subject=$schedule->fetchArray()){
                 $result.= '<tr>'
@@ -62,6 +80,7 @@
             }
             $result.= '</table>';
         }
+        $result.='</div>';
         return $result;
     }
             
@@ -98,8 +117,8 @@
             do{ 
                 $rowcout+=1;
                 $result.='<td>'.$d2['subject_name'].'</td>';
-                $result.='<td>'.$d2['room'].'</td>';
-                $result.='<td>&nbsp;</td>';
+                $result.='<td>'.(empty($d2['room'])?'каб.?':$d2['room']).'</td>';
+                $result.='<td>'.$d2['group_label'].'</td>';
                 $result.='</tr>';
          } while ($d2=$data2->fetchArray());
        } else {
@@ -136,9 +155,9 @@
         $stmt2->bindParam('day_id', date_format($day, 'N'));
 
         $result ='';
-        $result.='<table border="1px" width="100%">';
+        $result.='<table border="1px" width="100%" style="background:#f0f0f0;">';
         $result.='<tr>';
-        $result.='<td colspan="4">&nbsp'.  date_format($day, "Y-m-d N l").'</td>';
+        $result.='<th colspan="4">&nbsp'.  date_format($day,'l Y-M-d').'</th>';
         $result.='</tr>';
         while ($d=$data->fetchArray()){
             
@@ -161,19 +180,30 @@
     }
     
     function getDepartSchedule2($depart_id,$first_date=null){
+        global $db;
+        
+        $sql = 'select label from depart where id=:depart_id';
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam('depart_id', $depart_id);
+        $query = $stmt->execute();
+        if ($row=$query->fetchArray()){
+            $depart_label = $row['label'];
+        }
+        
+        
         if (empty($first_date)){
             $first_date=date_create();
             $p = date_format($first_date, 'N') -1;
             date_sub($first_date,new DateInterval('P'.$p.'D'));
         }
         $result = '';
-        $result.='<table border="1px">';
+        $result.='<table border="1px" width="100%">';
         $dayno = 0;
         $colCount = 3;
         $rowCount = 3;
         $dayCount = 7;
         $result.="<tr>";
-        $result.="<td colspan=3>$depart_id</td>";                
+        $result.="<td colspan=3>$depart_label</td>";                
         $result.="</tr>";
         
         for ($row=0;$row<3;$row++){

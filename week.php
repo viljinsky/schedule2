@@ -73,6 +73,6 @@
     ?>    
     <nav>
         <a href="week.php?week=prior">Предыдущая</a>
-        <a href="week.php?week=next">Следующая</a>
         <a href="week.php?week=current">Текущая</a>
+        <a href="week.php?week=next">Следующая</a>
     </nav>

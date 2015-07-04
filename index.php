@@ -8,56 +8,23 @@
         <?php include_once './proc.php';
             include './nav.html'; 
             scheduleAttr();
-            include './week.php'; 
+//            include './week.php'; 
          ?>
         
-        <h1>Пример распсания</h1>
+        <h1>Списки</h1>
+        
+        <div id="depart_list" style="position: absolute;width:50%;background: #ccc;">
+             <?php echo getDepartList(); ?> 
+        </div>    
+        <div id="teacher_pist" style="margin-left: 51%;background: #ccc;">
+            <?php echo getTeacherList(); ?>
+        </div>    
         
         
-        
-        <?php
-            date_default_timezone_set('Europe/Moscow');
-            $d1 = new DateTime();
-            date_sub($d1, new DateInterval('P3D'));
-            for ($k=0;$k<7;$k++){
-                echo print_r($d1).' '.$d1->format("Y M D w").'<br>';
-                date_add($d1,new DateInterval('P1D'));
-            }
-        ?>        
-        
+            
         <h1>Расчёт дня</h2>
+        <footer>Ильинский В.В.</footer>
 
-        <?php
-        
-        $a = getSchedulePeriod(2015, 27);
-        echo '<p>';
-        print_r($a['date_begin']);
-        echo '<br>';
-        print_r($a['date_end']);
-        echo '</p>';
-        
-        $now = date_create('2015-07-01');
-        $w = $now->format('w');
-        $days = array(
-            7=>'Восресенье',
-            1=>'Понедельник',
-            2=>'Вторник',
-            3=>'Среда',
-            4=>'Четверг',
-            5=>'Пятница',
-            6=>'Суббота'
-            );
-        echo $days[$w].' '.$w.'<br>';
-        
-        date_sub($now, new DateInterval('P'.--$w.'D'));
-        echo 'Понедельник '.  date_format($now, 'Y M d').'<br>';
-        echo 'Расчёт<br>';
-        
-        for ($n=0;$n<7;$n++){
-            echo date_format($now, 'Y m d D N').' ['.$days[date_format($now, 'N')].']<br>';
-            date_add($now, new DateInterval('P1D'));
-        }
-        ?>
         
     </body>
 </html>

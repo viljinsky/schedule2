@@ -23,8 +23,16 @@
         <div class="rightside">
             <?php   
                 $teacher_id = filter_input(INPUT_GET, 'teacher_id');
+                if (isset($_SESSION['weekno'])){
+                    $weekno=$_SESSION['weekno'];
+                    $date = date_create("2015-1-1");
+                    $dow = date_format($date,"w");
+                    $n=($weekno-1)*7 - $dow+1;
+                    date_add($date, new DateInterval("P".$n."D"));
+                }
+                
                 if (!empty($teacher_id)){
-                    echo getTeacherSchedule($teacher_id);
+                    echo getTeacherSchedule($teacher_id,$date);
                 }
             ?>                
         </div>
