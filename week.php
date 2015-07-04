@@ -3,11 +3,11 @@
         date_default_timezone_set('Europe/Moscow');
 
         // текущая неделя
-        if (!isset($_SESSION['current_week'])){
+        if (!isset($_SESSION['weekno'])){
             $weekno = date_format(date_create(), "W");
-            $_SESSION['current_week']=$weekno;
+            $_SESSION['weekno']=$weekno;
         } else {
-            $weekno = $_SESSION['current_week'];
+            $weekno = $_SESSION['weekno'];
         }
         // колбек
         if (isset($_SERVER['HTTP_REFERER'])){
@@ -16,19 +16,19 @@
         
         function nextW(){
             global $weekno,$callback;
-            $_SESSION['current_week']=$weekno+1;
+            $_SESSION['weekno']=$weekno+1;
             header('Location: '.$callback);
         }
         
         function priorW(){
             global $weekno,$callback;
-            $_SESSION['current_week']=$weekno-1;
+            $_SESSION['weekno']=$weekno-1;
             header('Location: '.$callback);            
         }
         
         function currentW(){
             global $callback;
-            $_SESSION['current_week']=  date_format(date_create(), 'W');
+            $_SESSION['weekno']=  date_format(date_create(), 'W');
             header('Location: '.$callback);            
             
         }

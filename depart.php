@@ -28,8 +28,16 @@
         <div class="rightside">
             <?php
                 $depart_id =  filter_input(INPUT_GET, 'depart_id');
+                $data = NULL;
+                if (isset($_SESSION['weekno'])){
+                    $weekno=$_SESSION['weekno'];
+                    $data = date_create('2015-1-1');
+                    $dn = date_format($data,'N')-1;
+                    $n = ($weekno-1)*7-$dn;
+                    date_add($data,new DateInterval('P'.$n.'D'));
+                }
                 if (!empty($depart_id)){
-                    echo getDepartSchedule($depart_id, date_create('2015-09-01'));
+                    echo getDepartSchedule2($depart_id,$data);
                 }
             ?>
         </div>    
