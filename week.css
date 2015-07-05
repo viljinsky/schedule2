@@ -1,4 +1,11 @@
+body{margin: 0;} 
+footer,header{padding: 10px;background: #6699cc;color:#fff;}
  table {background: #fff;border-collapse: collapse; border-color: lightgrey;}
  th {background: lightslategrey;color:white}
- .leftside {float: left;width:20%;background: #ddd;min-height: 300px;}
- .rightside {margin-left: 21%;background: #ddd;min-height: 300px;}
+ .leftside {float: left;width:20%;}
+ .rightside {margin-left: 21%;}
+ article {width: 90%;margin: 30px auto;}
+ 
+/* .date_navigator a {text-decoration: none;background: #ccc;color:#fff;padding: 5px;}
+ .date_navigator a:hover{text-decoration: underline;background: aqua;} */
+ 

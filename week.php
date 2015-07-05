@@ -71,8 +71,8 @@
              .'  по '.date_format($a['date_end'],'d m Y').')</p>';
 
     ?>    
-    <nav>
+<!--    <nav>
         <a href="week.php?week=prior">Предыдущая</a>
         <a href="week.php?week=current">Текущая</a>
         <a href="week.php?week=next">Следующая</a>
-    </nav>
+    </nav>-->

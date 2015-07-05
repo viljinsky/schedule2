@@ -8,16 +8,18 @@
     </head>
     
     <body>
-        
+        <header>
         <?php include_once './proc.php';
             include './nav.html'; 
             scheduleAttr();
             include './week.php'; 
          ?>
+        </header>   
         
-        
+        <article>
+        <div style="border:1px solid black;overflow: hidden">
         <div class="leftside">
-            <?php  echo getTeacherList(); ?>
+            <?php  echo teacherList(); ?>
         </div>
 
         <div class="rightside">
@@ -32,10 +34,15 @@
                 }
                 
                 if (!empty($teacher_id)){
-                    echo getTeacherSchedule($teacher_id,$date);
+                    echo teacherSchedule($teacher_id,$date);
                 }
             ?>                
         </div>
+        </div>    
+        </article>
+        <footer>
+            <?php include 'footer.html'; ?>
+        </footer>
         
     </body>
 </html>

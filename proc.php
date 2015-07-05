@@ -18,7 +18,7 @@
         echo '<h2>'.$result['educational_institution'].'</h2>';
         echo '<h1>'.$result['schedule_span'].'</h1>';
         echo '<h2>'.$result['schedule_title'].'</h2>';
-        echo '<b> c '.date_format($date_begin, 'd M').' по '.  date_format($date_end,'d M Y г.').'</b>';
+        echo '<b> c '.  substRusDate($date_begin, 'd M').' по '. substRusDate($date_end,'d M Y г.').'</b>';
         
         return $result;
     }
@@ -26,13 +26,29 @@
     /*
      * Список преподавателей
      */
-    function getTeacherList(){
+    function teacherList(){
         global $db;
-        $result = "";
-        $data = $db->query("select * from v_teacher");
-        while ($row=$data->fetchArray()){
-            $result.= "<a href='./teacher.php?teacher_id=".$row['id']."'>".$row['teacher_fio']."</a><br>";
+        
+        $sql1 = 'select * from profile where profile_type_id=1';
+        $data1 = $db->query($sql1);
+        
+        $sql2 = 'select * from v_teacher where profile_id=:profile_id';
+        $stmt2 = $db->prepare($sql2);
+        $result = 'Список перподавателей<br>';
+        while ($row1=$data1->fetchArray()){
+            $result.='<b>'.$row1['profile_name'].'</b><br>';
+            $stmt2->bindParam('profile_id', $row1['id']);
+            $data2 = $stmt2->execute();
+            while ($row2=$data2->fetchArray()){
+                $result.='<a href="teacher.php?teacher_id='.$row2['id'].'">'.$row2['teacher_fio'].'</a><br>';
+            }
         }
+        
+//        $result = "";
+//        $data = $db->query("select * from v_teacher");
+//        while ($row=$data->fetchArray()){
+//            $result.= "<a href='./teacher.php?teacher_id=".$row['id']."'>".$row['teacher_fio']."</a><br>";
+//        }
         return $result;
     } 
             
@@ -41,23 +57,65 @@
      */
     
     
-    function getTeacherSchedule($teacher_id,$data=NULL){
+    function dateNavigator($week_no=null){
+        if (empty($week_no)){
+            $week_no=  date_format(create_date(), 'W');
+        }
+        
+        return '<table border="1px" align="center" cellpadding="5px>" style="font:bold;background:#ccc"'
+                . '<tr><td><a href="week.php?week=prior">Предыдущая'.($week_no-1).'</a></td>'
+                . '<td><a href="week.php?week=current">Текущая'.($week_no).'</a></td>'
+                . '<td><a href="week.php?week=next">Следующая'.($week_no+1).'</a></td>'
+                . '</tr>'
+                . '</table>';
+        
+    }
+    
+    function substRusDate($date,$format){
+        $trans = array(
+            'Monday'=>'Понедельник',
+            'Tuesday'=>'Вторник',
+            'Wednesday'=>'Среда',
+            'Thursday'=>'Четверг',
+            'Friday'=>'Пятница',
+            'Saturday'=>'Суббота',
+            'Sunday'=>'Восресенье',
+            'Jan'=>'Январь',
+            'Feb'=>'Февраль',
+            'Mar'=>'Март',
+            'Apr'=>'Апрель',
+            'May'=>'Май',
+            'Jun'=>'Июнь',
+            'Jul'=>'Июль',
+            'Aug'=>'Август',
+            'Sep'=>'Сентябрь',
+            'Oct'=>'Октябрь',
+            'Nov'=>'Ноябрь',
+            'Dec'=>'Декабрь',
+            );
+        return strtr(date_format($date, $format),$trans);
+    }
+    
+    function teacherSchedule($teacher_id,$data=NULL){
         global $db;
         
         if (empty($data)){
             $data = date_create("2015-1-1");
         }
         
+        $sql = 'select * from v_teacher where id='.$teacher_id;
+        $query = $db->query($sql);
+        $row= $query->fetchArray();
+        $teacher_name=$row['teacher_fio'];
+        $teacher_profile=$row['profile_name'];
+        
         $result="";
         $dayList = $db->query("select * from day_list where (select count(*) from schedule where day_id=day_list.day_no and teacher_id=".$teacher_id.")>0");
 
         
         $result.='<div>';
-        $result.='<nav>'
-                . '<a href="week.php?week=prior">Prior</a>'
-                . '<a href="week.php?week=current">Current</a>'
-                . '<a href="week.php?week=next">Next</a>'
-                . '</nav>';
+        $result.='Преподаватель <b>'.$teacher_name.'</b> ('.$teacher_profile.')';
+        $result.= dateNavigator(date_format($data,'W'));
         
         while ($day=$dayList->fetchArray()){
             $day_id = $day['day_no'];
@@ -68,7 +126,8 @@
             $d = date_create(date_format($data,'Y-m-d'));
             date_add($d,new DateInterval("P".($day_id-1)."D"));
             
-            $result.= '<tr><th colspan="4">'.date_format($d, 'l (d M Y)')."</th></tr>";
+//            $result.= '<tr><th colspan="4">'.date_format($d, 'l (d M Y)')."</th></tr>";
+            $result.= '<tr><th colspan="4">'.  substRusDate($d, 'l (d M Y)')."</th></tr>";
             
             while ($subject=$schedule->fetchArray()){
                 $result.= '<tr>'
@@ -89,18 +148,21 @@
      *                 Список классов
      */
 
-    function getDepartList(){
+    function departList(){
         global $db;
-        $result = '';
-        $cr="\n\r";
-        $curriculumList = $db->query("select * from curriculum");
-        while ($curriculum=$curriculumList->fetchArray()){
-            $result.= $curriculum['caption']."<br>".$cr;
-
-            $departList = $db->query("select * from v_depart where curriculum_id=".$curriculum['id']." order by curriculum_id,skill_id ");
-            while ($depart=$departList->fetchArray()){
-                $result.="<a href='./depart.php?depart_id=".$depart['depart_id']."'>"
-                        .$depart['depart_label']."</a><br>".$cr;
+        $sql1 = 'select id as curriculum_id,caption from curriculum';
+        $query1 = $db->query($sql1);
+        
+        $sql2 = 'select * from v_depart where curriculum_id=:curriculum_id order by skill_id';
+        $stmt = $db->prepare($sql2);
+        
+        $result = 'Список классов<br>';
+        while ($row1=$query1->fetchArray()){
+            $result.='<b>'.$row1['caption'].'</b><br>';
+            $stmt->bindParam("curriculum_id", $row1['curriculum_id']);
+            $query2=$stmt->execute();
+            while ($row2=$query2->fetchArray()){
+                $result.='<a href="depart.php?depart_id='.$row2['depart_id'].'">'.$row2['depart_label'].'</a><br>';
             }
         }
         return $result;
@@ -109,7 +171,7 @@
     //------------------------------------------------------------------------//
     // Возвращает таблиу <table> расписание класса на неделю                  //
     //------------------------------------------------------------------------//
-    function getSubjectCell($data2){
+    function departCell($data2){
         $result = '';
         $rowcout = 0;
         $d2 = $data2->fetchArray();
@@ -132,7 +194,14 @@
         return array('rowcount'=>$rowcout,'str'=>$result);
     }
     
-    function getTable($depart_id,$day){
+    /**
+     * Расписание занятий класса на день
+     * @global SQLite3 $db
+     * @param type $depart_id
+     * @param type $day
+     * @return string
+     */
+    function departDayGrid($depart_id,$day){
         global $db;
 
         // список дней
@@ -155,15 +224,15 @@
         $stmt2->bindParam('day_id', date_format($day, 'N'));
 
         $result ='';
-        $result.='<table border="1px" width="100%" style="background:#f0f0f0;">';
+        $result.='<table border="1px" width="100%">';
         $result.='<tr>';
-        $result.='<th colspan="4">&nbsp'.  date_format($day,'l Y-M-d').'</th>';
+        $result.='<th colspan="4">&nbsp'. substRusDate($day,'l (d M Y)').'</th>';
         $result.='</tr>';
         while ($d=$data->fetchArray()){
             
             $stmt2->bindParam("bell_id", $d['bell_id']);
             $data2 = $stmt2->execute();
-            $a= getSubjectCell($data2);
+            $a= departCell($data2);
             $rowspan=$a['rowcount'];
             
             $result.='<tr>';
@@ -179,7 +248,14 @@
         return $result;
     }
     
-    function getDepartSchedule2($depart_id,$first_date=null){
+    /**
+     * Расписание занятий класса на неделю
+     * @global SQLite3 $db
+     * @param type $depart_id
+     * @param type $first_date
+     * @return string
+     */
+    function departSchedule($depart_id,$first_date=null){
         global $db;
         
         $sql = 'select label from depart where id=:depart_id';
@@ -191,106 +267,52 @@
         }
         
         
+        $sqlDayList = 'select distinct b.day_id '
+                . 'from depart a '
+                . 'inner join shift_detail b on a.shift_id=b.shift_id '
+                . 'where a.id=:depart_id';
+        $stmt2 = $db->prepare($sqlDayList);
+        $stmt2->bindParam('depart_id', $depart_id);
+        $dayList=$stmt2->execute();
+        
         if (empty($first_date)){
             $first_date=date_create();
             $p = date_format($first_date, 'N') -1;
             date_sub($first_date,new DateInterval('P'.$p.'D'));
         }
         $result = '';
-        $result.='<table border="1px" width="100%">';
+        $result.='<table width="100%">';
         $dayno = 0;
         $colCount = 3;
         $rowCount = 3;
         $dayCount = 7;
         $result.="<tr>";
-        $result.="<td colspan=3>$depart_label</td>";                
+        $result.="<td colspan=3>$depart_label &nbsp ".dateNavigator(date_format($first_date,'W'))."</td>";                
         $result.="</tr>";
         
+        $r = $dayList->fetchArray();
         for ($row=0;$row<3;$row++){
             $result.='<tr valign="top">';
             for ($col=0;$col<3;$col++){
-                $dayno=$row*$colCount+$col;
-                if ($dayno<$dayCount){
+                if (!empty($r)){
+                    $dayno=$r['day_id']-1;
                     $day = date_create(date_format($first_date,'Y-m-d'));
                     date_add($day,new DateInterval('P'.$dayno.'D'));
-                    $result.='<td>'. getTable($depart_id,$day).'</td>';
+                    $result.='<td>'.departDayGrid($depart_id,$day).'</td>';
+                    $r=$dayList->fetchArray();
                 } else {
                     $result.='<td>&nbsp;</td>';
                 }
             }
             $result.='</tr>';
+            if (empty($r)){
+                break;
+            }
         }
         $result.='</table>';
         return $result;
     }
     //------------------------------------------------------------------------//
     
-//    function getDepartSchedule($depart_id,$data=NULL){
-//        global  $db;
-//        
-//        if (empty($data)){
-//            $data = new DateTime();
-//            $dow  = date_format($data, 'N');
-//            $interval = new DateInterval('P'.--$dow.'D');
-//            date_sub($data, $interval);
-//        }
-//        $interval = new DateInterval('P1D');
-//
-//        $queryDayList ="select distinct day_list.day_no,day_list.day_caption from day_list ,depart ,shift_detail
-//                        where depart.shift_id=shift_detail.shift_id and day_list.day_no=shift_detail.day_id
-//                        and depart.id=";
-//        $queryBellList="select distinct bell_list.bell_id,bell_list.time_start from bell_list,depart,shift_detail
-//                        where depart.shift_id=shift_detail.shift_id 
-//                        and shift_detail.bell_id=bell_list.bell_id
-//                        and depart.id=";
-//
-//        $result = '';
-//        $dayList = $db->query($queryDayList.$depart_id);
-//        $bellList = $db->query($queryBellList.$depart_id);
-//        $cr = "\n\r";
-//        while ($day=$dayList->fetchArray()){
-//            date_add($data, $interval);
-//            $sdata = date_format($data, 'd M');
-//            
-//            $result .='<table border="1px" width="300px">'.$cr;
-//            
-//            $result .="<tr>".$cr."<th colspan='4' align='left'>".$day['day_caption'].' '.$sdata."</th>".$cr."</tr>".$cr;
-//            $day_id = $day['day_no'];
-//            while ($bell=$bellList->fetchArray()){
-//                $result.= '<tr>'.$cr;
-//                    $result .='<td>'.$bell['time_start']."</td>";
-//                    $bell_id=$bell['bell_id'];
-//
-//                    $q = $db->query("select * from v_schedule where depart_id=".$depart_id." and day_id=".$day_id." and bell_id=".$bell_id);
-//                    $r = $q->fetchArray();
-//                    if (empty($r)){
-//                        $result .="<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>\n\r</tr>".$cr;
-//                    } else {
-//                        $subject_name = $r['subject_name'];
-//                        $result .='<td>'.$subject_name.'</td>'
-//                                . '<td>'.$r['group_label'].'</td>'
-//                                . '<td>'.$r['room'].'<br>'.$r['teacher']."</td>".$cr
-//                                . "</tr>".$cr;
-//                        while ($r=$q->fetchArray()){
-//                            if ($r['subject_name']==$subject_name){
-//                                $s="&nbsp;";
-//                            } else {
-//                                $s=$subject_name;
-//                            }
-//                            $subject_name=$r['subject_name'];
-//                            $result .='<tr>'
-//                                    . '<td>&nbsp</td>'
-//                                    . '<td>'.$s.'</td>'
-//                                    . '<td>'.$r['group_label'].'</td>'
-//                                    . '<td>'.$r['room'].'<br>'.$r['teacher']."</td>".$cr
-//                                    . "</tr>".$cr;
-//                        }
-//                    }
-//                }
-//                $result .="</table>".$cr;                
-//            }
-//        return $result;
-//
-//    }  
 
 

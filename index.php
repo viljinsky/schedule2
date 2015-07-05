@@ -2,28 +2,33 @@
 <html lang="ru">
     <head>
         <meta charset="UTF-8">
-        <title>Расписание 2</title>
+        <title>Пример расписания</title>
+        <link rel="stylesheet" href="./week.css">
     </head>
     <body>
+        <header>
         <?php include_once './proc.php';
             include './nav.html'; 
-            scheduleAttr();
-//            include './week.php'; 
-         ?>
+            scheduleAttr(); ?>
+        </header>
         
-        <h1>Списки</h1>
-        
-        <div id="depart_list" style="position: absolute;width:50%;background: #ccc;">
-             <?php echo getDepartList(); ?> 
-        </div>    
-        <div id="teacher_pist" style="margin-left: 51%;background: #ccc;">
-            <?php echo getTeacherList(); ?>
-        </div>    
-        
-        
+        <article>
             
-        <h1>Расчёт дня</h2>
-        <footer>Ильинский В.В.</footer>
+        <h1>Списки</h1>
+        <div style="border:1px solid black;overflow: hidden; background: #f0f0f0;">
+            <div id="depart_list" style="float:left;width:50%;padding:20px;">
+                 <?php echo departList(); ?> 
+            </div>    
+            <div id="teacher_pist" style="margin-left: 51%;padding:20px">
+                <?php echo teacherList(); ?>
+            </div>    
+        </div>
+        
+        </article>
+            
+        <footer>
+           <?php  include './footer.html' ;?>
+        </footer>
 
         
     </body>
